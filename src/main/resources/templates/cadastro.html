@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro - IFSP Agendamentos</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="cadastro-container">
+        <h2>Cadastro</h2>
+
+        <!-- Mensagem de erro local (ex.: já existe usuário) -->
+        <p th:if="${erro}" th:text="${erro}" style="color:red; font-weight:bold;"></p>
+
+        <!-- Usa th:object para binding com @ModelAttribute("usuario") do controller -->
+        <form th:action="@{/cadastro}" th:object="${usuario}" method="post">
+            <label for="nomeUsuario">Nome de usuário</label>
+            <input type="text" id="nomeUsuario" th:field="*{nomeUsuario}" placeholder="ex: lucas" required>
+
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" th:field="*{senha}" placeholder="sua senha" required>
+
+            <div class="form-group">
+                <label for="palavraSeguranca">Palavra de Segurança:</label>
+                <input type="text" id="palavraSeguranca" name="palavraSeguranca" required>
+                <small>Ex: nome do seu primeiro animal, cidade favorita, etc.</small>
+            </div>            
+
+            <label for="tipo">Tipo</label>
+            <select id="tipo" th:field="*{tipo}">
+                <option value="USER">Usuário</option>
+                <option value="ADMIN">Administrador</option>
+            </select>
+
+            <button type="submit">Cadastrar</button>
+        </form>
+
+        <div class="extra-links">
+            <a th:href="@{/}">Voltar ao login</a>
+        </div>
+    </div>
+</body>
+</html>

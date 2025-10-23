@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Recuperar Senha - IFSP Agendamentos</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <div class="cadastro-container">
+    <h2>Recuperar Senha</h2>
+
+    <p th:if="${mensagem}" th:text="${mensagem}" style="color:green; font-weight:bold;"></p>
+    <p th:if="${erro}" th:text="${erro}" style="color:red; font-weight:bold;"></p>
+
+    <form th:action="@{/recuperar-senha}" method="post">
+      <label for="nomeUsuario">Nome de Usuário</label>
+      <input type="text" id="nomeUsuario" name="nomeUsuario" required>
+
+      <label for="palavraSeguranca">Palavra de Segurança</label>
+      <input type="text" id="palavraSeguranca" name="palavraSeguranca" required>
+
+      <button type="submit">Recuperar Senha</button>
+    </form>
+
+    <div class="extra-links">
+      <a th:href="@{/}">Voltar ao Login</a>
+    </div>
+  </div>
+</body>
+</html>

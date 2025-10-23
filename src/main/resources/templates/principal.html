@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel Principal - IFSP Itapetininga</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="principal-container">
+        <h2>Bem-vindo ao Sistema de Agendamento IFSP Itapetininga</h2>
+        <p>Escolha uma das opções abaixo:</p>
+
+        <div class="botoes-principais">
+            <a th:href="@{/agendar}" class="botao">📅 Fazer Agendamento</a>
+            <a th:href="@{/ver-agendamentos}" class="botao">🗂️ Ver Agendamentos</a>
+            <a th:href="@{/logout}" class="botao-sair">🚪 Sair</a>
+        </div>
+    </div>
+</body>
+</html>

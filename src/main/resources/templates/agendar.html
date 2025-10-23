@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Novo Agendamento - IFSP Itapetininga</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <header>
+        <div class="logo-area">
+            <img src="/images/ifsp-itapetininga.png" alt="Logo IFSP" class="logo-small">
+            <h1 class="titulo-central">Agendamento IFSP Itapetininga</h1>
+        </div>
+        <nav class="menu">
+            <a th:href="@{/principal}"><button>Início</button></a>
+            <a th:href="@{/ver-agendamentos}"><button>Ver Agendamentos</button></a>
+            <a th:href="@{/logout}"><button>Sair</button></a>
+        </nav>
+    </header>
+    
+    <main class="agendar-container">
+        <h2 th:text="${agendamento.id == null ? 'Novo Agendamento' : 'Editar Agendamento'}"></h2>
+    
+        <div th:if="${erro}" class="mensagem erro" th:text="${erro}"></div>
+        <div th:if="${mensagem}" class="mensagem sucesso" th:text="${mensagem}"></div>
+    
+        <form th:action="@{/agendar}" th:object="${agendamento}" method="post" class="form-card">
+            <input type="hidden" th:field="*{id}">
+    
+            <div class="form-grid">
+                <div>
+                    <label>Responsável:</label>
+                    <input type="text" th:field="*{responsavel}" required placeholder="Seu nome completo">
+                </div>
+    
+                <div>
+                    <label>E-mail:</label>
+                    <input type="email" th:field="*{emailContato}" required placeholder="email@ifsp.edu.br">
+                </div>
+    
+                <div>
+                    <label>Sala:</label>
+                    <select th:field="*{sala}" required>
+                        <option value="">Selecione</option>
+                        <option value="Quadra">Quadra</option>
+                        <option value="Estúdio">Estúdio</option>
+                        <option value="LAB Maker">LAB Maker</option>
+                    </select>
+                </div>
+    
+                <div>
+                    <label>Data:</label>
+                    <input type="date" th:field="*{data}" required>
+                </div>
+    
+                <div>
+                    <label>Hora Início:</label>
+                    <input type="time" th:field="*{horaInicio}" required>
+                </div>
+    
+                <div>
+                    <label>Hora Fim:</label>
+                    <input type="time" th:field="*{horaFim}" required>
+                </div>
+            </div>
+    
+            <label>Descrição:</label>
+            <textarea th:field="*{descricao}" rows="3" placeholder="Motivo do agendamento"></textarea>
+    
+            <div class="botoes">
+                <button type="submit" class="btn-salvar">💾 Salvar</button>
+                <a th:href="@{/ver-agendamentos}" class="btn-cancelar">Cancelar</a>
+            </div>
+        </form>
+    </main>
+    </body>
+</html>
