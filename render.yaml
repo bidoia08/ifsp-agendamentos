@@ -6,4 +6,19 @@ services:
     region: oregon
     buildCommand: "./mvnw clean package -DskipTests"
     startCommand: "java -jar target/projeto-0.0.1-SNAPSHOT.jar"
-    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ifsp_agendamentos_db
+          property: connectionString
+      - key: DATABASE_USER
+        fromDatabase:
+          name: ifsp_agendamentos_db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: ifsp_agendamentos_db
+          property: password
+databases:
+  - name: ifsp_agendamentos_db
+    plan: free
