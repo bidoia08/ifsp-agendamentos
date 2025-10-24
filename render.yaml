@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: ifsp-agendamento
+    env: java
+    plan: free
+    region: oregon
+    buildCommand: "./mvnw clean package -DskipTests"
+    startCommand: "java -jar target/projeto-0.0.1-SNAPSHOT.jar"
+    autoDeploy: true
