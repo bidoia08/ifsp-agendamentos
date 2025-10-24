@@ -1,24 +1,17 @@
 services:
   - type: web
-    name: ifsp-agendamento
+    name: projeto-ifsp-agendamento
     env: java
-    plan: free
-    region: oregon
-    buildCommand: "./mvnw clean package -DskipTests"
-    startCommand: "java -jar target/projeto-0.0.1-SNAPSHOT.jar"
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/projeto-0.0.1-SNAPSHOT.jar
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: ifsp_agendamentos_db
-          property: connectionString
-      - key: DATABASE_USER
-        fromDatabase:
-          name: ifsp_agendamentos_db
-          property: user
-      - key: DATABASE_PASSWORD
-        fromDatabase:
-          name: ifsp_agendamentos_db
-          property: password
-databases:
-  - name: ifsp_agendamentos_db
-    plan: free
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://dpg-d3tvn0pr0fns73aqmlt0-a:5432/ifsp_agendamentos_db
+      - key: SPRING_DATASOURCE_USERNAME
+        value: ifsp_agendamentos_db_user
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: I0mCLRMre1RmcltawDazYDvBSYOerGw2
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: SPRING_JPA_SHOW_SQL
+        value: true
