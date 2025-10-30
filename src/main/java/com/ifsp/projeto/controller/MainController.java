@@ -93,8 +93,10 @@ public class MainController {
 
     @PostMapping("/agendar")
     public String salvarAgendamento(@ModelAttribute Agendamento agendamento,
-                                    Model model,
-                                    RedirectAttributes redirectAttributes) {
+                                Model model,
+                                RedirectAttributes redirectAttributes,
+                                HttpSession session) {
+
 
         LocalDate hoje = LocalDate.now();
 
@@ -128,6 +130,12 @@ public class MainController {
             return "agendar";
         }
 
+        // Associa o agendamento ao usuário logado (somente se for novo)
+        Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
+        if (usuarioLogado != null && agendamento.getId() == null) {
+            agendamento.setUsuario(usuarioLogado);
+        }
+
         // Salva (cria ou atualiza conforme presença do id)
         agendamentoRepo.save(agendamento);
 
@@ -150,37 +158,71 @@ public class MainController {
 
     // === EDITAR ===
     @GetMapping("/editar/{id}")
-    public String editarAgendamento(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String editarAgendamento(@PathVariable Long id,
+                                Model model,
+                                RedirectAttributes redirectAttributes,
+                                HttpSession session) {
+
         var ag = agendamentoRepo.findById(id).orElse(null);
         if (ag == null) {
             redirectAttributes.addFlashAttribute("erro", "Agendamento não encontrado.");
             return "redirect:/ver-agendamentos";
         }
-        model.addAttribute("agendamento", ag);
-        return "agendar";
-    }
 
-    @GetMapping("/excluir/{id}")
-    public String excluirAgendamento(@PathVariable Long id, RedirectAttributes redirectAttributes, HttpSession session) {
+        Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
 
-        // Verifica se há alguém logado
-        Usuario logado = (Usuario) session.getAttribute("usuarioLogado");
-
-        if (logado == null) {
+        if (usuarioLogado == null) {
             redirectAttributes.addFlashAttribute("erro", "Você precisa estar logado!");
             return "redirect:/";
         }
 
-        // ✅ Somente admin pode excluir
-        if (!"ADMIN".equalsIgnoreCase(logado.getTipo())) {
-            redirectAttributes.addFlashAttribute("erro", "Apenas administradores podem excluir agendamentos!");
+        // Se não for admin e não for o criador → bloqueia
+        if (!"ADMIN".equalsIgnoreCase(usuarioLogado.getTipo()) &&
+            (ag.getUsuario() == null || !ag.getUsuario().getId().equals(usuarioLogado.getId()))) {
+            redirectAttributes.addFlashAttribute("erro", "Você só pode editar seus próprios agendamentos!");
             return "redirect:/ver-agendamentos";
         }
 
+        model.addAttribute("agendamento", ag);
+        return "agendar";
+    }
+
+
+    @GetMapping("/excluir/{id}")
+    public String excluirAgendamento(@PathVariable Long id, RedirectAttributes redirectAttributes, HttpSession session) {
+    Usuario logado = (Usuario) session.getAttribute("usuarioLogado");
+
+    if (logado == null) {
+        redirectAttributes.addFlashAttribute("erro", "Você precisa estar logado!");
+        return "redirect:/";
+    }
+
+    Optional<Agendamento> optAg = agendamentoRepo.findById(id);
+    if (optAg.isEmpty()) {
+        redirectAttributes.addFlashAttribute("erro", "Agendamento não encontrado.");
+        return "redirect:/ver-agendamentos";
+    }
+
+    Agendamento agendamento = optAg.get();
+
+    // Se for admin, pode excluir qualquer um
+    if ("ADMIN".equalsIgnoreCase(logado.getTipo())) {
         agendamentoRepo.deleteById(id);
         redirectAttributes.addFlashAttribute("mensagem", "🗑️ Agendamento excluído com sucesso!");
         return "redirect:/ver-agendamentos";
     }
+
+    // Se for user, só pode excluir o próprio
+    if (agendamento.getUsuario() != null && agendamento.getUsuario().getId().equals(logado.getId())) {
+        agendamentoRepo.deleteById(id);
+        redirectAttributes.addFlashAttribute("mensagem", "🗑️ Seu agendamento foi excluído com sucesso!");
+    } else {
+        redirectAttributes.addFlashAttribute("erro", "⚠️ Você só pode excluir seus próprios agendamentos!");
+    }
+
+    return "redirect:/ver-agendamentos";
+}
+
 
     @GetMapping("/recuperar-senha")
     public String mostrarRecuperarSenhaForm() {
