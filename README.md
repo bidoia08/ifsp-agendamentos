@@ -129,7 +129,7 @@ Rodar mvn spring-boot:run e acessar http://localhost:8080.
 🧑‍💻 Desenvolvido por
 Lucas Henrique de Melo Campos Weiss
 Projeto acadêmico para a disciplina de Programação Web - IFSP Itapetininga
-Professor orientador: [Nome do Professor]
+Professor orientador: Gerson Carriel
 
 🏁 Licença
 Este projeto é de uso acadêmico e pode ser adaptado livremente para fins educacionais.
