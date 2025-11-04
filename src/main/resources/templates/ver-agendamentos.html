@@ -95,6 +95,11 @@
         @media (max-width: 760px) {
             table.agendamentos { min-width: 700px; font-size: 0.85rem; }
         }
+
+        tr.hoje {
+            background-color: #fff9c4; /* Amarelo claro */
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -107,6 +112,8 @@
         <nav class="menu">
             <a th:href="@{/principal}"><button>Início</button></a>
             <a th:href="@{/agendar}"><button>Agendar</button></a>
+            <a th:href="@{/historico}"><button>Histórico</button></a>
+            <a th:href="@{/calendario}"><button>Calendário</button></a>
             <a th:href="@{/logout}"><button>Sair</button></a>
         </nav>
 
@@ -143,11 +150,21 @@
                         <td th:text="${agendamento.horaFim}">10:00</td>
                         <td th:text="${agendamento.descricao}">Descrição</td>
                         <td class="acoes">
-                            <a th:href="@{'/editar/' + ${agendamento.id}}" class="btn-editar">✏️ Editar</a>
-                            <a th:if="${usuarioLogado != null and usuarioLogado.tipo == 'ADMIN'}"
+                            <!-- Exibe "Editar" apenas se for o dono do agendamento OU admin -->
+                            <a th:if="${usuarioLogado != null and (usuarioLogado.tipo == 'ADMIN' or agendamento.responsavel == usuarioLogado.nomeUsuario)}"
+                               th:href="@{'/editar/' + ${agendamento.id}}"
+                               class="btn-editar">✏️ Editar</a>
+                        
+                            <!-- Exibe "Excluir" apenas se for admin OU dono do agendamento -->
+                            <a th:if="${usuarioLogado != null and (usuarioLogado.tipo == 'ADMIN' or agendamento.responsavel == usuarioLogado.nomeUsuario)}"
                                th:href="@{'/excluir/' + ${agendamento.id}}"
                                class="btn-excluir">🗑️ Excluir</a>
                         </td>
+
+                        <tr th:each="agendamento : ${agendamentos}"
+                            th:classappend="${agendamento.data == T(java.time.LocalDate).now()} ? 'hoje' : ''">
+
+                        
                     </tr>
                     <tr th:if="${#lists.isEmpty(agendamentos)}">
                         <td colspan="8" style="text-align:center; color:#777; padding:20px;">Nenhum agendamento encontrado.</td>

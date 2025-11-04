@@ -6,8 +6,16 @@ import com.ifsp.projeto.repository.AgendamentoRepository;
 import com.ifsp.projeto.repository.UsuarioRepository;
 
 import java.time.LocalDate;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -97,8 +105,19 @@ public class MainController {
                                 RedirectAttributes redirectAttributes,
                                 HttpSession session) {
 
+        Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
+
+        if (usuarioLogado == null) {
+            redirectAttributes.addFlashAttribute("erro", "Você precisa estar logado!");
+            return "redirect:/";
+        }
 
         LocalDate hoje = LocalDate.now();
+
+        // ⚙️ Define o responsável automaticamente
+        agendamento.setResponsavel(usuarioLogado.getNomeUsuario());
+        
+
 
         // Validação: data passada
         if (agendamento.getData().isBefore(hoje)) {
@@ -131,7 +150,7 @@ public class MainController {
         }
 
         // Associa o agendamento ao usuário logado (somente se for novo)
-        Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
+        
         if (usuarioLogado != null && agendamento.getId() == null) {
             agendamento.setUsuario(usuarioLogado);
         }
@@ -145,9 +164,26 @@ public class MainController {
 
     // === VER AGENDAMENTOS ===
     @GetMapping("/ver-agendamentos")
-    public String verAgendamentos(HttpSession session, Model model) {
-        //dando bo, rever no gpt terça
-        List<Agendamento> agendamentos = agendamentoRepo.findAll();
+    public String verAgendamentos(@RequestParam(required = false) String data,
+                                HttpSession session, Model model) {
+
+        List<Agendamento> agendamentos;
+        LocalDate hoje = LocalDate.now();
+
+        if (data != null) {
+            LocalDate dataFiltro = LocalDate.parse(data);
+            agendamentos = agendamentoRepo.findByData(dataFiltro)
+                    .stream()
+                    .filter(a -> !a.getData().isBefore(hoje)) // ✅ Exclui datas passadas
+                    .toList();
+            model.addAttribute("filtroData", dataFiltro);
+        } else {
+            agendamentos = agendamentoRepo.findAll()
+                    .stream()
+                    .filter(a -> !a.getData().isBefore(hoje)) // ✅ Exclui datas passadas
+                    .toList();
+        }
+
         model.addAttribute("agendamentos", agendamentos);
 
         Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
@@ -155,6 +191,25 @@ public class MainController {
 
         return "ver-agendamentos";
     }
+
+    @GetMapping("/historico")
+    public String verHistorico(HttpSession session, Model model) {
+        Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
+        LocalDate hoje = LocalDate.now();
+
+        // Busca apenas os agendamentos anteriores a hoje
+        List<Agendamento> historico = agendamentoRepo.findAll()
+                .stream()
+                .filter(a -> a.getData().isBefore(hoje))
+                .sorted((a1, a2) -> a2.getData().compareTo(a1.getData())) // mais recentes primeiro
+                .toList();
+
+        model.addAttribute("historico", historico);
+        model.addAttribute("usuarioLogado", usuarioLogado);
+
+        return "historico";
+    }
+
 
     // === EDITAR ===
     @GetMapping("/editar/{id}")
@@ -241,5 +296,80 @@ public class MainController {
             model.addAttribute("erro", "Usuário ou palavra de segurança incorretos.");
         }
         return "recuperar-senha";
-    }    
+    }
+
+    // método a colar/substituir
+    @GetMapping("/calendario")
+    public String calendario(
+            @RequestParam(name = "mes", required = false) Integer mes,
+            @RequestParam(name = "ano", required = false) Integer ano,
+            Model model) {
+
+        LocalDate hoje = LocalDate.now();
+
+        // Se não vierem parâmetros, usa o mês e ano atuais
+        if (mes == null) mes = hoje.getMonthValue();
+        if (ano == null) ano = hoje.getYear();
+
+        LocalDate primeiroDia = LocalDate.of(ano, mes, 1);
+        int ultimoDia = primeiroDia.lengthOfMonth();
+        int primeiroDiaSemana = primeiroDia.getDayOfWeek().getValue() % 7;
+
+        // Recupera agendamentos
+        List<Agendamento> agendamentos = agendamentoRepo.findAll();
+        Set<LocalDate> datasAgendadas = agendamentos.stream()
+                .map(Agendamento::getData)
+                .collect(Collectors.toSet());
+
+        // Monta estrutura de semanas
+        List<List<Map<String, Object>>> weeks = new ArrayList<>();
+        List<Map<String, Object>> week = new ArrayList<>();
+
+        for (int i = 0; i < primeiroDiaSemana; i++) {
+            week.add(Collections.emptyMap());
+        }
+
+        for (int day = 1; day <= ultimoDia; day++) {
+            LocalDate d = LocalDate.of(ano, mes, day);
+            Map<String, Object> cell = new HashMap<>();
+            cell.put("day", day);
+            cell.put("dataStr", d.toString());
+            cell.put("agendado", datasAgendadas.contains(d));
+            cell.put("hoje", d.equals(hoje));
+            week.add(cell);
+
+            if (week.size() == 7) {
+                weeks.add(week);
+                week = new ArrayList<>();
+            }
+        }
+
+        if (!week.isEmpty()) {
+            while (week.size() < 7) {
+                week.add(Collections.emptyMap());
+            }
+            weeks.add(week);
+        }
+
+        // Nome do mês atual
+        String mesNome = primeiroDia.getMonth()
+                .getDisplayName(TextStyle.FULL, new Locale("pt", "BR"));
+
+        // Calcular mês anterior e próximo
+        LocalDate anterior = primeiroDia.minusMonths(1);
+        LocalDate proximo = primeiroDia.plusMonths(1);
+
+        // Enviar tudo para o modelo
+        model.addAttribute("weeks", weeks);
+        model.addAttribute("mesNome", mesNome);
+        model.addAttribute("ano", ano);
+        model.addAttribute("mes", mes);
+        model.addAttribute("mesAnterior", anterior.getMonthValue());
+        model.addAttribute("anoAnterior", anterior.getYear());
+        model.addAttribute("mesProximo", proximo.getMonthValue());
+        model.addAttribute("anoProximo", proximo.getYear());
+
+        return "calendario";
+    }
+
 }

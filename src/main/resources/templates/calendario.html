@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Calendário de Agendamentos - IFSP Itapetininga</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        main.calendario {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: rgba(255,255,255,0.98);
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        table.calendario {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 1rem;
+        }
+        table.calendario th {
+            background: #1b5e20;
+            color: white;
+            padding: 10px;
+        }
+        table.calendario td {
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+            vertical-align: middle;
+            min-height: 70px;
+        }
+        table.calendario td.hoje {
+            background-color: #c8e6c9;
+            font-weight: bold;
+        }
+        table.calendario td.agendado {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        table.calendario td.agendado a { display:block; color:inherit; text-decoration:none; }
+        table.calendario td.empty { background: transparent; border: none; }
+        .cal-header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; }
+        .cal-header .title { font-size:1.2rem; color:#1b5e20; font-weight:700; }
+        .cal-controls button {
+            background:#008037;
+            color:white;
+            border:none;
+            padding:8px 12px;
+            border-radius:8px;
+            cursor:pointer;
+        }
+        .cal-controls button:hover { background:#006628; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo-area">
+        <img src="/images/ifsp-itapetininga.png" alt="Logo IFSP" class="logo-small">
+        <h1 class="titulo-central">Agendamento IFSP Itapetininga</h1>
+    </div>
+    <nav class="menu">
+        <a th:href="@{/principal}"><button>Início</button></a>
+        <a th:href="@{/agendar}"><button>Agendar</button></a>
+        <a th:href="@{/ver-agendamentos}"><button>Agendamentos</button></a>
+        <a th:href="@{/historico}"><button>Histórico</button></a>
+        <a th:href="@{/logout}"><button>Sair</button></a>
+    </nav>
+</header>
+
+<main class="calendario">
+    <div class="cal-header">
+        <div class="cal-controls">
+            <a th:href="@{|/calendario?mes=${mesAnterior}&ano=${anoAnterior}|}">
+                <button>◀</button>
+            </a>
+        </div>
+
+        <div class="title" th:text="${mesNome} + ' ' + ${ano}">Mês Ano</div>
+
+        <div class="cal-controls">
+            <a th:href="@{|/calendario?mes=${mesProximo}&ano=${anoProximo}|}">
+                <button>▶</button>
+            </a>
+        </div>
+    </div>
+
+    <table class="calendario" role="grid">
+        <thead>
+            <tr>
+                <th>Dom</th>
+                <th>Seg</th>
+                <th>Ter</th>
+                <th>Qua</th>
+                <th>Qui</th>
+                <th>Sex</th>
+                <th>Sáb</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="week : ${weeks}">
+                <td th:each="cell : ${week}"
+                    th:class="${#maps.isEmpty(cell)} ? 'empty' : (cell.hoje ? 'hoje' : (cell.agendado ? 'agendado' : ''))">
+                    
+                    <span th:if="${#maps.isEmpty(cell)}"></span>
+
+                    <a th:if="${!#maps.isEmpty(cell) and cell.agendado}"
+                       th:href="@{|/ver-agendamentos?data=${cell.dataStr}|}">
+                        <span th:text="${cell.day}">1</span> ★
+                    </a>
+
+                    <span th:if="${!#maps.isEmpty(cell) and !cell.agendado}"
+                          th:text="${cell.day}">1</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</main>
+
+</body>
+</html>

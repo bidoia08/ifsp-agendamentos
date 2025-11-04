@@ -2,6 +2,7 @@ package com.ifsp.projeto.repository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,5 +27,7 @@ boolean verificarConflitos(
     @Param("horaFim") LocalTime horaFim,
     @Param("id") Long id
 );
+
+    List<Agendamento> findByData(LocalDate data);
 
 }
