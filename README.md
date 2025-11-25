@@ -44,7 +44,7 @@ O sistema permite o cadastro de usuários, login seguro, criação e edição de
 
 ### 1️⃣ Clonar o repositório
 ```bash
-git clone https://github.com/seu-usuario/seu-repositorio.git
+git clone https://github.com/bidoia08/ifsp-agendamentos.git
 cd seu-repositorio
 
 2️⃣ Configurar o banco de dados
